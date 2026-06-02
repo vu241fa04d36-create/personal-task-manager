@@ -4,9 +4,15 @@ import os
 import uuid
 from datetime import datetime
 import google.generativeai as genai
+
 app = Flask(__name__)
 TASKS_FILE = "tasks.json"
+
+
+# -------------------------------
 # File Helpers
+# -------------------------------
+
 def load_tasks():
     if os.path.exists(TASKS_FILE):
         try:
@@ -15,10 +21,17 @@ def load_tasks():
         except:
             return []
     return []
+
+
 def save_tasks(tasks):
     with open(TASKS_FILE, "w", encoding="utf-8") as f:
         json.dump(tasks, f, indent=2)
+
+
+# -------------------------------
 # Gemini Helper
+# -------------------------------
+
 def call_gemini(api_key, prompt):
     try:
         genai.configure(api_key=api_key)
@@ -38,18 +51,32 @@ def call_gemini(api_key, prompt):
     except Exception as e:
         print("Gemini Error:", str(e))
         raise Exception(str(e))
+
+
+# -------------------------------
 # Routes
+# -------------------------------
+
 @app.route("/")
 def index():
     return render_template("index.html")
+
+
+# -------------------------------
 # Task CRUD
+# -------------------------------
+
 @app.route("/api/tasks", methods=["GET"])
 def get_tasks():
     return jsonify(load_tasks())
+
+
 @app.route("/api/tasks", methods=["POST"])
 def create_task():
     data = request.json
+
     tasks = load_tasks()
+
     task = {
         "id": str(uuid.uuid4()),
         "title": data.get("title", ""),
@@ -66,51 +93,81 @@ def create_task():
         "progress": 0,
         "notes": ""
     }
+
     tasks.append(task)
     save_tasks(tasks)
+
     return jsonify(task), 201
+
+
 @app.route("/api/tasks/<task_id>", methods=["PUT"])
 def update_task(task_id):
     data = request.json
+
     tasks = load_tasks()
+
     for task in tasks:
         if task["id"] == task_id:
+
             task.update(data)
+
             if (
                 data.get("status") == "done"
                 and not task.get("completed_at")
             ):
                 task["completed_at"] = datetime.now().isoformat()
+
             save_tasks(tasks)
             return jsonify(task)
+
     return jsonify({"error": "Task not found"}), 404
+
+
 @app.route("/api/tasks/<task_id>", methods=["DELETE"])
 def delete_task(task_id):
     tasks = load_tasks()
+
     tasks = [t for t in tasks if t["id"] != task_id]
+
     save_tasks(tasks)
+
     return jsonify({"success": True})
+
+
 @app.route("/api/tasks/<task_id>/steps", methods=["PUT"])
 def update_steps(task_id):
     data = request.json
+
     tasks = load_tasks()
+
     for task in tasks:
         if task["id"] == task_id:
+
             task["steps"] = data.get("steps", [])
+
             completed = sum(
                 1 for step in task["steps"]
                 if step.get("done")
             )
+
             total = len(task["steps"])
+
             task["progress"] = (
                 int((completed / total) * 100)
                 if total > 0
                 else 0
             )
+
             save_tasks(tasks)
+
             return jsonify(task)
+
     return jsonify({"error": "Task not found"}), 404
+
+
+# -------------------------------
 # Statistics
+# -------------------------------
 
 @app.route("/api/stats", methods=["GET"])
 def get_stats():
@@ -364,4 +421,4 @@ Keep it concise.
 # -------------------------------
 
 if __name__ == "__main__":
-    app.run(debug=True, port=500)
+    app.run(host="0.0.0.0", port=500, debug=True)
