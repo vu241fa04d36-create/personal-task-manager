@@ -1,3 +1,3 @@
-Flask
-google-generativeai
-gunicorn
+flask>=3.0.0
+flask-login>=0.6.3
+werkzeug>=3.0.0
