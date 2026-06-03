@@ -1,3 +1,4 @@
+
 # ⚡ TaskFlow AI — Personal Task Manager
 
 A beautiful, AI-powered personal task manager built with Flask + Google Gemini AI.
@@ -65,5 +66,4 @@ taskflow/
 
 ## 🤖 AI Model Used
 
-**Google Gemini 1.5 Flash** — fast, free tier available, no credit card required.
-"# Tak-flow-ai" 
+**Google Gemini 2.5 Flash** — fast, free tier available, no credit card required.
